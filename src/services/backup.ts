@@ -46,6 +46,7 @@ function sanitizeAccess(raw: unknown): Access | null {
     url,
     description: typeof item.description === 'string' ? item.description : undefined,
     category: typeof item.category === 'string' ? item.category : undefined,
+    image: typeof item.image === 'string' && item.image.startsWith('data:image/') ? item.image : undefined,
     favorite: item.favorite === true,
     createdAt: typeof item.createdAt === 'string' ? item.createdAt : now,
     updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : now,

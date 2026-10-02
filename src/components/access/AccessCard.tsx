@@ -23,7 +23,7 @@ export function AccessCard({ access, openInNewTab, onEdit, onDelete, onToggleFav
       />
 
       <div className="access-card__top">
-        <SiteIcon key={access.url} url={access.url} name={access.name} />
+        <SiteIcon key={access.url} url={access.url} name={access.name} image={access.image} />
         <div className="access-card__actions">
           <button
             type="button"

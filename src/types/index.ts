@@ -4,12 +4,14 @@ export interface Access {
   url: string;
   description?: string;
   category?: string;
+  /** Data URL da imagem personalizada; quando ausente, usa o favicon do site. */
+  image?: string;
   favorite: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export type AccessInput = Pick<Access, 'name' | 'url' | 'description' | 'category' | 'favorite'>;
+export type AccessInput = Pick<Access, 'name' | 'url' | 'description' | 'category' | 'image' | 'favorite'>;
 
 export type Theme = 'dark' | 'light' | 'system';
 
