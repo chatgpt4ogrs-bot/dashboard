@@ -32,7 +32,7 @@ export interface Equipment {
   port: number;
   useHttps: boolean;
   username: string;
-  /** A senha nunca sai do servidor; o frontend só sabe se existe uma cadastrada. */
+  /** A senha não vem na listagem; é consultada sob demanda em GET /equipments/:id/password. */
   hasPassword: boolean;
   notes?: string;
   createdAt: string;

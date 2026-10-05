@@ -116,6 +116,12 @@ apiRouter.delete('/equipments/:id', async (req, res) => {
   res.status(204).end();
 });
 
+apiRouter.get('/equipments/:id/password', async (req, res) => {
+  const equipment = await findEquipment(req.params.id);
+  if (!equipment) return notFound(res, 'Equipamento');
+  res.set('Cache-Control', 'no-store').json({ password: equipment.password });
+});
+
 /* ---------- Integração com os dispositivos ---------- */
 
 apiRouter.post('/equipments/:id/status', async (req, res) => {

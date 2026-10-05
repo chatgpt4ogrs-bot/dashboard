@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { Check, Copy, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { DEVICE_BRANDS, type DeviceBrand, type Equipment, type EquipmentInput } from '../../../shared/condominium';
-import { getErrorMessage } from '../../services/api';
+import { equipmentApi, getErrorMessage } from '../../services/api';
 import { Modal } from '../ui/Modal';
 
 const TYPE_SUGGESTIONS = ['Controlador de acesso', 'Leitor facial', 'DVR', 'NVR', 'Câmera IP', 'Videoporteiro'];
@@ -20,9 +21,35 @@ export function EquipmentFormModal({ equipment, onClose, onSubmit }: EquipmentFo
   const [useHttps, setUseHttps] = useState(equipment?.useHttps ?? false);
   const [username, setUsername] = useState(equipment?.username ?? 'admin');
   const [password, setPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(Boolean(equipment?.hasPassword));
+  const [showPassword, setShowPassword] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [notes, setNotes] = useState(equipment?.notes ?? '');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!equipment?.hasPassword) return;
+    let cancelled = false;
+    equipmentApi
+      .getPassword(equipment.id)
+      .then((value) => !cancelled && setPassword(value))
+      .catch((err) => !cancelled && setError(`Não foi possível carregar a senha: ${getErrorMessage(err)}`))
+      .finally(() => !cancelled && setPasswordLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [equipment]);
+
+  const handleCopyPassword = async () => {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setShowPassword(true);
+    }
+  };
 
   const handleHttpsChange = (checked: boolean) => {
     setUseHttps(checked);
@@ -116,14 +143,39 @@ export function EquipmentFormModal({ equipment, onClose, onSubmit }: EquipmentFo
 
             <label className="field">
               <span className="field__label">Senha</span>
-              <input
-                className="input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder={equipment?.hasPassword ? 'Manter a atual' : ''}
-              />
+              <div className="input-group">
+                <input
+                  className="input"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder={passwordLoading ? 'Carregando...' : ''}
+                  disabled={passwordLoading}
+                />
+                <div className="input-group__actions">
+                  <button
+                    type="button"
+                    className="icon-btn icon-btn--sm"
+                    onClick={() => setShowPassword((v) => !v)}
+                    title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                  {password && (
+                    <button
+                      type="button"
+                      className="icon-btn icon-btn--sm"
+                      onClick={handleCopyPassword}
+                      title={copied ? 'Copiada!' : 'Copiar senha'}
+                      aria-label="Copiar senha"
+                    >
+                      {copied ? <Check size={15} /> : <Copy size={15} />}
+                    </button>
+                  )}
+                </div>
+              </div>
             </label>
           </div>
 

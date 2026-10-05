@@ -892,6 +892,22 @@ button:disabled {
   grid-template-columns: 1fr 110px;
 }
 
+.input-group {
+  position: relative;
+}
+
+.input-group .input {
+  padding-right: 72px;
+}
+
+.input-group__actions {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: flex;
+  transform: translateY(-50%);
+}
+
 select.input {
   background: var(--bg-elevated);
 }

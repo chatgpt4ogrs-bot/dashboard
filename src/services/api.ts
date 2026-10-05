@@ -51,6 +51,7 @@ export const equipmentApi = {
   update: (id: string, input: EquipmentInput) =>
     request<Equipment>(`/equipments/${id}`, { method: 'PUT', body: json(input) }),
   remove: (id: string) => request<void>(`/equipments/${id}`, { method: 'DELETE' }),
+  getPassword: async (id: string) => (await request<{ password: string }>(`/equipments/${id}/password`)).password,
   status: (id: string) => request<StatusResult>(`/equipments/${id}/status`, { method: 'POST' }),
   reboot: (id: string) => request<RebootResult>(`/equipments/${id}/reboot`, { method: 'POST' }),
 };
