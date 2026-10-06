@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { CondominiumInput, CondominiumSummary } from '../../shared/condominium';
 import { CondominiumFormModal } from '../components/condominium/CondominiumFormModal';
+import { useConfirm } from '../context/ConfirmContext';
+import { useI18n } from '../i18n';
 import { condominiumApi, getErrorMessage } from '../services/api';
 import { normalizeText } from '../utils/text';
 
@@ -14,6 +16,8 @@ export function CondominiumsPage() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [form, setForm] = useState<FormState>(null);
+  const confirm = useConfirm();
+  const { t } = useI18n();
 
   const load = useCallback(async () => {
     try {
@@ -46,11 +50,17 @@ export function CondominiumsPage() {
   };
 
   const handleDelete = async (condominium: CondominiumSummary) => {
-    const message =
-      condominium.equipmentCount > 0
-        ? `Excluir "${condominium.name}" e seus ${condominium.equipmentCount} equipamento(s)?`
-        : `Excluir "${condominium.name}"?`;
-    if (!window.confirm(message)) return;
+    const count = condominium.equipmentCount;
+    const confirmed = await confirm({
+      title: t.condominiums.deleteTitle,
+      message: (
+        <>
+          {t.condominiums.deleteMessage} <strong>{condominium.name}</strong>?
+          {count > 0 && <> {t.condominiums.deleteEquipments(count)}</>} {t.common.irreversible}
+        </>
+      ),
+    });
+    if (!confirmed) return;
     try {
       await condominiumApi.remove(condominium.id);
       await load();
@@ -63,15 +73,13 @@ export function CondominiumsPage() {
     <div className="page">
       <header className="page__header">
         <div>
-          <h1 className="page__title">Condomínios</h1>
+          <h1 className="page__title">{t.condominiums.title}</h1>
           <p className="page__subtitle">
-            {condominiums.length === 0
-              ? 'Cadastre os condomínios e seus equipamentos.'
-              : `${condominiums.length} ${condominiums.length === 1 ? 'condomínio cadastrado' : 'condomínios cadastrados'}`}
+            {condominiums.length === 0 ? t.condominiums.emptySubtitle : t.condominiums.countSubtitle(condominiums.length)}
           </p>
         </div>
         <button type="button" className="btn btn--primary" onClick={() => setForm({ mode: 'create' })}>
-          <Plus size={16} /> Novo condomínio
+          <Plus size={16} /> {t.condominiums.new}
         </button>
       </header>
 
@@ -86,38 +94,38 @@ export function CondominiumsPage() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar condomínios..."
-              aria-label="Buscar condomínios"
+              placeholder={t.condominiums.search}
+              aria-label={t.condominiums.searchLabel}
             />
           </div>
         </div>
       )}
 
       {loading ? (
-        <p className="page__subtitle">Carregando...</p>
+        <p className="page__subtitle">{t.common.loading}</p>
       ) : condominiums.length === 0 ? (
         !error && (
           <div className="empty">
             <div className="empty__icon">
               <Building2 size={28} />
             </div>
-            <h2 className="empty__title">Nenhum condomínio ainda</h2>
-            <p className="empty__text">Adicione um condomínio para cadastrar e monitorar seus equipamentos.</p>
+            <h2 className="empty__title">{t.condominiums.emptyTitle}</h2>
+            <p className="empty__text">{t.condominiums.emptyText}</p>
             <button type="button" className="btn btn--primary" onClick={() => setForm({ mode: 'create' })}>
-              <Plus size={16} /> Adicionar condomínio
+              <Plus size={16} /> {t.condominiums.addFirst}
             </button>
           </div>
         )
       ) : filtered.length === 0 ? (
         <div className="empty">
-          <h2 className="empty__title">Nenhum resultado</h2>
-          <p className="empty__text">Nenhum condomínio corresponde à busca.</p>
+          <h2 className="empty__title">{t.common.noResults}</h2>
+          <p className="empty__text">{t.condominiums.noMatch}</p>
         </div>
       ) : (
         <div className="grid">
           {filtered.map((condominium) => (
             <article key={condominium.id} className="access-card">
-              <Link className="access-card__link" to={`/condominios/${condominium.id}`} aria-label={`Abrir ${condominium.name}`} />
+              <Link className="access-card__link" to={`/condominios/${condominium.id}`} aria-label={t.common.open(condominium.name)} />
               <div className="access-card__top">
                 <div className="site-icon">
                   <Building2 size={20} />
@@ -127,8 +135,8 @@ export function CondominiumsPage() {
                     type="button"
                     className="icon-btn icon-btn--sm"
                     onClick={() => setForm({ mode: 'edit', condominium })}
-                    title="Editar"
-                    aria-label="Editar"
+                    title={t.common.edit}
+                    aria-label={t.common.edit}
                   >
                     <Pencil size={15} />
                   </button>
@@ -136,8 +144,8 @@ export function CondominiumsPage() {
                     type="button"
                     className="icon-btn icon-btn--sm icon-btn--danger"
                     onClick={() => handleDelete(condominium)}
-                    title="Excluir"
-                    aria-label="Excluir"
+                    title={t.common.delete}
+                    aria-label={t.common.delete}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -151,9 +159,7 @@ export function CondominiumsPage() {
                   </span>
                 )}
               </div>
-              <span className="tag">
-                {condominium.equipmentCount} {condominium.equipmentCount === 1 ? 'equipamento' : 'equipamentos'}
-              </span>
+              <span className="tag">{t.condominiums.equipmentCount(condominium.equipmentCount)}</span>
             </article>
           ))}
         </div>

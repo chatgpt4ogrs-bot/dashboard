@@ -3,7 +3,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { AccessCard } from '../components/access/AccessCard';
 import { AccessFormModal } from '../components/access/AccessFormModal';
 import { useAccesses } from '../context/AccessesContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { useSettings } from '../context/SettingsContext';
+import { useI18n } from '../i18n';
 import type { Access, AccessInput } from '../types';
 import { normalizeText } from '../utils/text';
 
@@ -12,16 +14,18 @@ type FormState = { mode: 'create' } | { mode: 'edit'; access: Access } | null;
 export function AccessesPage() {
   const { accesses, addAccess, updateAccess, removeAccess, toggleFavorite } = useAccesses();
   const { settings } = useSettings();
+  const { t, locale } = useI18n();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(null);
+  const confirm = useConfirm();
 
   const categories = useMemo(
     () =>
       [...new Set(accesses.map((a) => a.category?.trim()).filter((c): c is string => Boolean(c)))].sort((a, b) =>
-        a.localeCompare(b, 'pt-BR'),
+        a.localeCompare(b, locale),
       ),
-    [accesses],
+    [accesses, locale],
   );
 
   const activeCategory = category && categories.includes(category) ? category : null;
@@ -31,8 +35,8 @@ export function AccessesPage() {
     return accesses
       .filter((a) => !activeCategory || a.category === activeCategory)
       .filter((a) => !q || [a.name, a.url, a.description, a.category].some((f) => f && normalizeText(f).includes(q)))
-      .sort((a, b) => Number(b.favorite) - Number(a.favorite) || a.name.localeCompare(b.name, 'pt-BR'));
-  }, [accesses, query, activeCategory]);
+      .sort((a, b) => Number(b.favorite) - Number(a.favorite) || a.name.localeCompare(b.name, locale));
+  }, [accesses, query, activeCategory, locale]);
 
   const closeForm = useCallback(() => setForm(null), []);
 
@@ -42,23 +46,29 @@ export function AccessesPage() {
     setForm(null);
   };
 
-  const handleDelete = (access: Access) => {
-    if (window.confirm(`Excluir "${access.name}"?`)) removeAccess(access.id);
+  const handleDelete = async (access: Access) => {
+    const confirmed = await confirm({
+      title: t.accesses.deleteTitle,
+      message: (
+        <>
+          {t.accesses.deleteMessage} <strong>{access.name}</strong>? {t.common.irreversible}
+        </>
+      ),
+    });
+    if (confirmed) removeAccess(access.id);
   };
 
   return (
     <div className="page">
       <header className="page__header">
         <div>
-          <h1 className="page__title">Acessos</h1>
+          <h1 className="page__title">{t.accesses.title}</h1>
           <p className="page__subtitle">
-            {accesses.length === 0
-              ? 'Centralize aqui os sistemas que você usa no dia a dia.'
-              : `${accesses.length} ${accesses.length === 1 ? 'acesso cadastrado' : 'acessos cadastrados'}`}
+            {accesses.length === 0 ? t.accesses.emptySubtitle : t.accesses.countSubtitle(accesses.length)}
           </p>
         </div>
         <button type="button" className="btn btn--primary" onClick={() => setForm({ mode: 'create' })}>
-          <Plus size={16} /> Novo acesso
+          <Plus size={16} /> {t.accesses.new}
         </button>
       </header>
 
@@ -71,19 +81,19 @@ export function AccessesPage() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar acessos..."
-              aria-label="Buscar acessos"
+              placeholder={t.accesses.search}
+              aria-label={t.accesses.searchLabel}
             />
           </div>
 
           {categories.length > 0 && (
-            <div className="chips" role="tablist" aria-label="Filtrar por categoria">
+            <div className="chips" role="tablist" aria-label={t.accesses.filterByCategory}>
               <button
                 type="button"
                 className={`chip${activeCategory === null ? ' chip--active' : ''}`}
                 onClick={() => setCategory(null)}
               >
-                Todas
+                {t.accesses.allCategories}
               </button>
               {categories.map((item) => (
                 <button
@@ -105,16 +115,16 @@ export function AccessesPage() {
           <div className="empty__icon">
             <LayoutGrid size={28} />
           </div>
-          <h2 className="empty__title">Nenhum acesso ainda</h2>
-          <p className="empty__text">Adicione o primeiro sistema ou plataforma para acessá-lo com um clique.</p>
+          <h2 className="empty__title">{t.accesses.emptyTitle}</h2>
+          <p className="empty__text">{t.accesses.emptyText}</p>
           <button type="button" className="btn btn--primary" onClick={() => setForm({ mode: 'create' })}>
-            <Plus size={16} /> Adicionar acesso
+            <Plus size={16} /> {t.accesses.addFirst}
           </button>
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty">
-          <h2 className="empty__title">Nenhum resultado</h2>
-          <p className="empty__text">Nenhum acesso corresponde aos filtros atuais.</p>
+          <h2 className="empty__title">{t.common.noResults}</h2>
+          <p className="empty__text">{t.accesses.noMatch}</p>
         </div>
       ) : (
         <div className="grid">

@@ -1,3 +1,4 @@
+import { getMessages } from '../i18n';
 import type { Access, Settings } from '../types';
 import { createId } from '../utils/text';
 import { isValidUrl, normalizeUrl } from '../utils/url';
@@ -58,11 +59,11 @@ export async function readBackup(file: File): Promise<{ accesses: Access[]; sett
   try {
     data = JSON.parse(await file.text());
   } catch {
-    throw new Error('O arquivo não é um JSON válido.');
+    throw new Error(getMessages().errors.backupJson);
   }
 
   if (!data || typeof data !== 'object' || !Array.isArray((data as BackupFile).accesses)) {
-    throw new Error('Arquivo de backup inválido.');
+    throw new Error(getMessages().errors.backupInvalid);
   }
 
   const backup = data as BackupFile;

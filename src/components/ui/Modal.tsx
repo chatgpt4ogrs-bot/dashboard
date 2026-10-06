@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useI18n } from '../../i18n';
 
 interface ModalProps {
   title: string;
@@ -9,6 +10,7 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children }: ModalProps) {
+  const { t } = useI18n();
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -28,7 +30,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
           <h2 id="modal-title" className="modal__title">
             {title}
           </h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Fechar">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t.common.close}>
             <X size={18} />
           </button>
         </div>

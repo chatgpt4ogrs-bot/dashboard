@@ -1,15 +1,18 @@
 import { Download, Monitor, Moon, Sun, Trash2, Upload } from 'lucide-react';
 import { useRef, useState, type ChangeEvent } from 'react';
+import { LanguageSelector } from '../components/ui/LanguageSelector';
 import { Switch } from '../components/ui/Switch';
 import { useAccesses } from '../context/AccessesContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { useSettings } from '../context/SettingsContext';
+import { useI18n } from '../i18n';
 import { downloadBackup, readBackup } from '../services/backup';
 import type { Theme } from '../types';
 
-const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
-  { value: 'dark', label: 'Escuro', icon: Moon },
-  { value: 'light', label: 'Claro', icon: Sun },
-  { value: 'system', label: 'Sistema', icon: Monitor },
+const THEME_OPTIONS: { value: Theme; icon: typeof Sun }[] = [
+  { value: 'dark', icon: Moon },
+  { value: 'light', icon: Sun },
+  { value: 'system', icon: Monitor },
 ];
 
 type Feedback = { type: 'success' | 'error'; message: string } | null;
@@ -17,8 +20,10 @@ type Feedback = { type: 'success' | 'error'; message: string } | null;
 export function SettingsPage() {
   const { settings, updateSettings } = useSettings();
   const { accesses, replaceAccesses } = useAccesses();
+  const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
+  const confirm = useConfirm();
 
   const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -27,9 +32,11 @@ export function SettingsPage() {
 
     try {
       const backup = await readBackup(file);
-      const confirmed = window.confirm(
-        `Importar ${backup.accesses.length} acesso(s)? Os acessos atuais serão substituídos.`,
-      );
+      const confirmed = await confirm({
+        title: t.settings.importBackup,
+        message: t.settings.importConfirm(backup.accesses.length, accesses.length),
+        confirmLabel: t.settings.replace,
+      });
       if (!confirmed) return;
 
       replaceAccesses(backup.accesses);
@@ -40,37 +47,34 @@ export function SettingsPage() {
           ...(typeof openInNewTab === 'boolean' && { openInNewTab }),
         });
       }
-      setFeedback({ type: 'success', message: `${backup.accesses.length} acesso(s) importado(s) com sucesso.` });
+      setFeedback({ type: 'success', message: t.settings.imported(backup.accesses.length) });
     } catch (error) {
-      setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Falha ao importar backup.' });
+      setFeedback({ type: 'error', message: error instanceof Error ? error.message : t.errors.backupImport });
     }
   };
 
-  const handleClear = () => {
-    if (window.confirm('Apagar todos os acessos? Essa ação não pode ser desfeita.')) {
-      replaceAccesses([]);
-      setFeedback({ type: 'success', message: 'Todos os acessos foram removidos.' });
-    }
+  const handleClear = async () => {
+    const confirmed = await confirm({
+      title: t.settings.clearAll,
+      message: t.settings.clearConfirm(accesses.length),
+      confirmLabel: t.settings.clearConfirmLabel,
+    });
+    if (!confirmed) return;
+    replaceAccesses([]);
+    setFeedback({ type: 'success', message: t.settings.cleared });
   };
 
   return (
-    <div className="page page--narrow">
-      <header className="page__header">
-        <div>
-          <h1 className="page__title">Configurações</h1>
-          <p className="page__subtitle">Personalize o comportamento do sistema.</p>
-        </div>
-      </header>
-
+    <div className="settings-content">
       <section className="settings-section">
-        <h2 className="settings-section__title">Aparência</h2>
+        <h2 className="settings-section__title">{t.settings.appearance}</h2>
         <div className="settings-row">
           <div className="settings-row__info">
-            <span className="settings-row__label">Tema</span>
-            <span className="settings-row__hint">Escolha o tema da interface.</span>
+            <span className="settings-row__label">{t.settings.theme}</span>
+            <span className="settings-row__hint">{t.settings.themeHint}</span>
           </div>
-          <div className="segmented" role="radiogroup" aria-label="Tema">
-            {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+          <div className="segmented" role="radiogroup" aria-label={t.settings.theme}>
+            {THEME_OPTIONS.map(({ value, icon: Icon }) => (
               <button
                 key={value}
                 type="button"
@@ -79,22 +83,30 @@ export function SettingsPage() {
                 className={`segmented__option${settings.theme === value ? ' segmented__option--active' : ''}`}
                 onClick={() => updateSettings({ theme: value })}
               >
-                <Icon size={14} /> {label}
+                <Icon size={14} /> {t.settings.themes[value]}
               </button>
             ))}
           </div>
         </div>
+
+        <div className="settings-row">
+          <div className="settings-row__info">
+            <span className="settings-row__label">{t.language.label}</span>
+            <span className="settings-row__hint">{t.settings.languageHint}</span>
+          </div>
+          <LanguageSelector />
+        </div>
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-section__title">Comportamento</h2>
+        <h2 className="settings-section__title">{t.settings.behavior}</h2>
         <div className="settings-row">
           <div className="settings-row__info">
-            <span className="settings-row__label">Abrir acessos em nova aba</span>
-            <span className="settings-row__hint">Mantém o Centralizador aberto ao acessar um sistema.</span>
+            <span className="settings-row__label">{t.settings.openInNewTab}</span>
+            <span className="settings-row__hint">{t.settings.openInNewTabHint}</span>
           </div>
           <Switch
-            label="Abrir acessos em nova aba"
+            label={t.settings.openInNewTab}
             checked={settings.openInNewTab}
             onChange={(openInNewTab) => updateSettings({ openInNewTab })}
           />
@@ -102,11 +114,11 @@ export function SettingsPage() {
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-section__title">Dados</h2>
+        <h2 className="settings-section__title">{t.settings.data}</h2>
         <div className="settings-row">
           <div className="settings-row__info">
-            <span className="settings-row__label">Exportar backup</span>
-            <span className="settings-row__hint">Baixa um arquivo JSON com seus acessos e configurações.</span>
+            <span className="settings-row__label">{t.settings.exportBackup}</span>
+            <span className="settings-row__hint">{t.settings.exportHint}</span>
           </div>
           <button
             type="button"
@@ -114,28 +126,28 @@ export function SettingsPage() {
             onClick={() => downloadBackup(accesses, settings)}
             disabled={accesses.length === 0}
           >
-            <Download size={16} /> Exportar
+            <Download size={16} /> {t.settings.export}
           </button>
         </div>
 
         <div className="settings-row">
           <div className="settings-row__info">
-            <span className="settings-row__label">Importar backup</span>
-            <span className="settings-row__hint">Substitui os acessos atuais pelos do arquivo.</span>
+            <span className="settings-row__label">{t.settings.importBackup}</span>
+            <span className="settings-row__hint">{t.settings.importHint}</span>
           </div>
           <button type="button" className="btn btn--secondary" onClick={() => fileInputRef.current?.click()}>
-            <Upload size={16} /> Importar
+            <Upload size={16} /> {t.settings.import}
           </button>
           <input ref={fileInputRef} type="file" accept="application/json,.json" hidden onChange={handleImport} />
         </div>
 
         <div className="settings-row">
           <div className="settings-row__info">
-            <span className="settings-row__label">Apagar todos os acessos</span>
-            <span className="settings-row__hint">Remove permanentemente todos os acessos cadastrados.</span>
+            <span className="settings-row__label">{t.settings.clearAll}</span>
+            <span className="settings-row__hint">{t.settings.clearHint}</span>
           </div>
           <button type="button" className="btn btn--danger" onClick={handleClear} disabled={accesses.length === 0}>
-            <Trash2 size={16} /> Apagar
+            <Trash2 size={16} /> {t.settings.clear}
           </button>
         </div>
 

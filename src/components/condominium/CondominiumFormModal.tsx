@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { Condominium, CondominiumInput } from '../../../shared/condominium';
+import { useI18n } from '../../i18n';
 import { getErrorMessage } from '../../services/api';
 import { Modal } from '../ui/Modal';
 
@@ -10,6 +11,7 @@ interface CondominiumFormModalProps {
 }
 
 export function CondominiumFormModal({ condominium, onClose, onSubmit }: CondominiumFormModalProps) {
+  const { t } = useI18n();
   const [name, setName] = useState(condominium?.name ?? '');
   const [address, setAddress] = useState(condominium?.address ?? '');
   const [notes, setNotes] = useState(condominium?.notes ?? '');
@@ -19,7 +21,7 @@ export function CondominiumFormModal({ condominium, onClose, onSubmit }: Condomi
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim()) {
-      setError('Informe o nome do condomínio.');
+      setError(t.condominiumForm.nameRequired);
       return;
     }
     setSaving(true);
@@ -33,22 +35,34 @@ export function CondominiumFormModal({ condominium, onClose, onSubmit }: Condomi
   };
 
   return (
-    <Modal title={condominium ? 'Editar condomínio' : 'Novo condomínio'} onClose={onClose}>
+    <Modal title={condominium ? t.condominiumForm.editTitle : t.condominiumForm.newTitle} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
         <div className="modal__body">
           <label className="field">
-            <span className="field__label">Nome *</span>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Residencial Jardins" autoFocus />
+            <span className="field__label">{t.common.nameRequired}</span>
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t.condominiumForm.namePlaceholder}
+              autoFocus
+            />
           </label>
 
           <label className="field">
-            <span className="field__label">Endereço</span>
-            <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Opcional" />
+            <span className="field__label">{t.common.address}</span>
+            <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t.common.optional} />
           </label>
 
           <label className="field">
-            <span className="field__label">Observações</span>
-            <textarea className="input input--textarea" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Opcional" />
+            <span className="field__label">{t.common.notes}</span>
+            <textarea
+              className="input input--textarea"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder={t.common.optional}
+            />
           </label>
 
           {error && <p className="feedback feedback--error">{error}</p>}
@@ -56,10 +70,10 @@ export function CondominiumFormModal({ condominium, onClose, onSubmit }: Condomi
 
         <div className="modal__footer">
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancelar
+            {t.common.cancel}
           </button>
           <button type="submit" className="btn btn--primary" disabled={saving}>
-            {condominium ? 'Salvar' : 'Adicionar'}
+            {condominium ? t.common.save : t.common.add}
           </button>
         </div>
       </form>

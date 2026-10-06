@@ -15,8 +15,11 @@ export type AccessInput = Pick<Access, 'name' | 'url' | 'description' | 'categor
 
 export type Theme = 'dark' | 'light' | 'system';
 
+export type Language = 'pt' | 'en';
+
 export interface Settings {
   theme: Theme;
+  language: Language;
   openInNewTab: boolean;
   sidebarCollapsed: boolean;
 }

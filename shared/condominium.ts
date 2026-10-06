@@ -22,7 +22,19 @@ export interface CondominiumSummary extends Condominium {
 
 export type CondominiumInput = Pick<Condominium, 'name' | 'address' | 'notes'>;
 
-export interface Equipment {
+/** Dados cadastrais opcionais. Modelo, serial e firmware também são detectados automaticamente quando o driver suporta. */
+export interface EquipmentAssetInfo {
+  model?: string;
+  firmware?: string;
+  serial?: string;
+  mac?: string;
+  /** Datas no formato AAAA-MM-DD. */
+  installedAt?: string;
+  lastMaintenanceAt?: string;
+  responsible?: string;
+}
+
+export interface Equipment extends EquipmentAssetInfo {
   id: string;
   condominiumId: string;
   name: string;
@@ -39,7 +51,7 @@ export interface Equipment {
   updatedAt: string;
 }
 
-export interface EquipmentInput {
+export interface EquipmentInput extends EquipmentAssetInfo {
   name: string;
   brand: DeviceBrand;
   type?: string;

@@ -1,13 +1,15 @@
-import { Building2, LayoutGrid, Settings, type LucideIcon } from 'lucide-react';
+import { Building2, LayoutDashboard, LayoutGrid, Settings, type LucideIcon } from 'lucide-react';
+import type { Messages } from '../i18n/pt';
 
 export interface NavItem {
   path: string;
-  label: string;
+  labelKey: keyof Messages['nav'];
   icon: LucideIcon;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { path: '/', label: 'Acessos', icon: LayoutGrid },
-  { path: '/condominios', label: 'Condomínios', icon: Building2 },
-  { path: '/configuracoes', label: 'Configurações', icon: Settings },
+  { path: '/', labelKey: 'home', icon: LayoutDashboard },
+  { path: '/acessos', labelKey: 'accesses', icon: LayoutGrid },
+  { path: '/condominios', labelKey: 'condominiums', icon: Building2 },
+  { path: '/configuracoes', labelKey: 'settings', icon: Settings },
 ];

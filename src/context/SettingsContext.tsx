@@ -5,6 +5,7 @@ import type { Settings } from '../types';
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
+  language: 'pt',
   openInNewTab: true,
   sidebarCollapsed: false,
 };

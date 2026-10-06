@@ -31,6 +31,22 @@ export function parseCondominiumInput(raw: unknown): CondominiumInput {
   };
 }
 
+function optionalDate(body: Body, key: string, label: string): string | undefined {
+  const value = optionalText(body, key, 10);
+  if (value && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(value)))) {
+    throw new ValidationError(`${label} inválida.`);
+  }
+  return value;
+}
+
+function optionalMac(body: Body): string | undefined {
+  const value = optionalText(body, 'mac', 30);
+  if (!value) return undefined;
+  const hex = value.replace(/[^0-9a-fA-F]/g, '');
+  if (hex.length !== 12 || /[^0-9a-fA-F:\-.\s]/.test(value)) throw new ValidationError('Endereço MAC inválido.');
+  return hex.toUpperCase().match(/../g)!.join(':');
+}
+
 export function parseEquipmentInput(raw: unknown, { requirePassword }: { requirePassword: boolean }): EquipmentInput {
   const body = asBody(raw);
 
@@ -57,5 +73,12 @@ export function parseEquipmentInput(raw: unknown, { requirePassword }: { require
     username: requiredText(body, 'username', 'o usuário', 100),
     password: password || undefined,
     notes: optionalText(body, 'notes', 2000),
+    model: optionalText(body, 'model', 100),
+    firmware: optionalText(body, 'firmware', 100),
+    serial: optionalText(body, 'serial', 100),
+    mac: optionalMac(body),
+    installedAt: optionalDate(body, 'installedAt', 'Data de instalação'),
+    lastMaintenanceAt: optionalDate(body, 'lastMaintenanceAt', 'Data da última manutenção'),
+    responsible: optionalText(body, 'responsible', 150),
   };
 }

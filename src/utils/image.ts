@@ -1,3 +1,5 @@
+import { getMessages } from '../i18n';
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_DIMENSION = 128;
 
@@ -5,15 +7,16 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
+    img.onerror = () => reject(new Error(getMessages().errors.imageRead));
     img.src = src;
   });
 }
 
 /** Redimensiona a imagem para no máximo 128px e retorna como data URL, mantendo o localStorage leve. */
 export async function imageFileToDataUrl(file: File): Promise<string> {
-  if (!file.type.startsWith('image/')) throw new Error('Selecione um arquivo de imagem.');
-  if (file.size > MAX_FILE_SIZE) throw new Error('A imagem deve ter no máximo 5 MB.');
+  const t = getMessages();
+  if (!file.type.startsWith('image/')) throw new Error(t.errors.imageType);
+  if (file.size > MAX_FILE_SIZE) throw new Error(t.errors.imageSize);
 
   const objectUrl = URL.createObjectURL(file);
   try {
@@ -26,7 +29,7 @@ export async function imageFileToDataUrl(file: File): Promise<string> {
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext('2d');
-    if (!context) throw new Error('Não foi possível processar a imagem.');
+    if (!context) throw new Error(t.errors.imageProcess);
     context.drawImage(img, 0, 0, width, height);
 
     return canvas.toDataURL('image/webp', 0.9);

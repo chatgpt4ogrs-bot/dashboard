@@ -1,4 +1,5 @@
 import { Pencil, Star, Trash2 } from 'lucide-react';
+import { useI18n } from '../../i18n';
 import type { Access } from '../../types';
 import { getHostname } from '../../utils/url';
 import { SiteIcon } from './SiteIcon';
@@ -12,6 +13,8 @@ interface AccessCardProps {
 }
 
 export function AccessCard({ access, openInNewTab, onEdit, onDelete, onToggleFavorite }: AccessCardProps) {
+  const { t } = useI18n();
+  const favoriteLabel = access.favorite ? t.accesses.unfavorite : t.accesses.favorite;
   return (
     <article className="access-card">
       <a
@@ -19,7 +22,7 @@ export function AccessCard({ access, openInNewTab, onEdit, onDelete, onToggleFav
         href={access.url}
         target={openInNewTab ? '_blank' : undefined}
         rel={openInNewTab ? 'noopener noreferrer' : undefined}
-        aria-label={`Abrir ${access.name}`}
+        aria-label={t.common.open(access.name)}
       />
 
       <div className="access-card__top">
@@ -29,8 +32,8 @@ export function AccessCard({ access, openInNewTab, onEdit, onDelete, onToggleFav
             type="button"
             className={`icon-btn icon-btn--sm${access.favorite ? ' icon-btn--favorite' : ''}`}
             onClick={() => onToggleFavorite(access.id)}
-            title={access.favorite ? 'Remover dos favoritos' : 'Favoritar'}
-            aria-label={access.favorite ? 'Remover dos favoritos' : 'Favoritar'}
+            title={favoriteLabel}
+            aria-label={favoriteLabel}
           >
             <Star size={15} fill={access.favorite ? 'currentColor' : 'none'} />
           </button>
@@ -38,8 +41,8 @@ export function AccessCard({ access, openInNewTab, onEdit, onDelete, onToggleFav
             type="button"
             className="icon-btn icon-btn--sm"
             onClick={() => onEdit(access)}
-            title="Editar"
-            aria-label="Editar"
+            title={t.common.edit}
+            aria-label={t.common.edit}
           >
             <Pencil size={15} />
           </button>
@@ -47,8 +50,8 @@ export function AccessCard({ access, openInNewTab, onEdit, onDelete, onToggleFav
             type="button"
             className="icon-btn icon-btn--sm icon-btn--danger"
             onClick={() => onDelete(access)}
-            title="Excluir"
-            aria-label="Excluir"
+            title={t.common.delete}
+            aria-label={t.common.delete}
           >
             <Trash2 size={15} />
           </button>

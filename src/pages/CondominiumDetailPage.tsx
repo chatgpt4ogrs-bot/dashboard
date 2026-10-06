@@ -10,6 +10,8 @@ import {
 } from '../../shared/condominium';
 import { EquipmentFormModal } from '../components/condominium/EquipmentFormModal';
 import { StatusBadge, type DisplayStatus } from '../components/condominium/StatusBadge';
+import { useConfirm } from '../context/ConfirmContext';
+import { useI18n } from '../i18n';
 import { equipmentApi, condominiumApi, getErrorMessage } from '../services/api';
 
 type FormState = { mode: 'create' } | { mode: 'edit'; equipment: Equipment } | null;
@@ -31,6 +33,8 @@ export function CondominiumDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [form, setForm] = useState<FormState>(null);
+  const confirm = useConfirm();
+  const { t } = useI18n();
 
   const setState = (equipmentId: string, state: EquipmentState) =>
     setStates((prev) => ({ ...prev, [equipmentId]: state }));
@@ -84,7 +88,15 @@ export function CondominiumDetailPage() {
   };
 
   const handleDelete = async (equipment: Equipment) => {
-    if (!window.confirm(`Excluir o equipamento "${equipment.name}"?`)) return;
+    const confirmed = await confirm({
+      title: t.condominiumDetail.deleteTitle,
+      message: (
+        <>
+          {t.condominiumDetail.deleteMessage} <strong>{equipment.name}</strong>? {t.condominiumDetail.deleteHistory} {t.common.irreversible}
+        </>
+      ),
+    });
+    if (!confirmed) return;
     try {
       await equipmentApi.remove(equipment.id);
       await load();
@@ -94,11 +106,21 @@ export function CondominiumDetailPage() {
   };
 
   const handleReboot = async (equipment: Equipment) => {
-    if (!window.confirm(`Reiniciar "${equipment.name}" remotamente?\n\nO equipamento ficará indisponível durante o reinício.`)) return;
+    const confirmed = await confirm({
+      title: t.condominiumDetail.rebootTitle,
+      message: (
+        <>
+          {t.condominiumDetail.rebootMessage} <strong>{equipment.name}</strong> {t.condominiumDetail.rebootWarning}
+        </>
+      ),
+      confirmLabel: t.condominiumDetail.reboot,
+      tone: 'primary',
+    });
+    if (!confirmed) return;
     setState(equipment.id, { ...states[equipment.id], display: 'checking' });
     try {
       const result = await equipmentApi.reboot(equipment.id);
-      setFeedback({ type: result.ok ? 'success' : 'error', message: `${equipment.name}: ${result.message}` });
+      setFeedback({ type: result.ok ? 'success' : 'error', message: `${equipment.name}: ${t.serverMessage(result.message)}` });
       if (result.ok) setState(equipment.id, { display: 'rebooting' });
       else checkOne(equipment.id);
     } catch (err) {
@@ -110,7 +132,7 @@ export function CondominiumDetailPage() {
   if (loading) {
     return (
       <div className="page">
-        <p className="page__subtitle">Carregando...</p>
+        <p className="page__subtitle">{t.common.loading}</p>
       </div>
     );
   }
@@ -119,9 +141,9 @@ export function CondominiumDetailPage() {
     return (
       <div className="page">
         <Link to="/condominios" className="back-link">
-          <ArrowLeft size={16} /> Condomínios
+          <ArrowLeft size={16} /> {t.nav.condominiums}
         </Link>
-        <p className="feedback feedback--error">{error ?? 'Condomínio não encontrado.'}</p>
+        <p className="feedback feedback--error">{error ?? t.condominiumDetail.notFound}</p>
       </div>
     );
   }
@@ -131,7 +153,7 @@ export function CondominiumDetailPage() {
   return (
     <div className="page">
       <Link to="/condominios" className="back-link">
-        <ArrowLeft size={16} /> Condomínios
+        <ArrowLeft size={16} /> {t.nav.condominiums}
       </Link>
 
       <header className="page__header">
@@ -139,17 +161,17 @@ export function CondominiumDetailPage() {
           <h1 className="page__title">{condominium.name}</h1>
           <p className="page__subtitle">
             {condominium.address ? `${condominium.address} · ` : ''}
-            {equipments.length === 0 ? 'Nenhum equipamento' : `${onlineCount} de ${equipments.length} online`}
+            {equipments.length === 0 ? t.condominiumDetail.noEquipment : t.condominiumDetail.onlineOf(onlineCount, equipments.length)}
           </p>
         </div>
         <div className="page__actions">
           {equipments.length > 0 && (
             <button type="button" className="btn btn--secondary" onClick={() => equipments.forEach((e) => checkOne(e.id))}>
-              <RefreshCw size={16} /> Verificar todos
+              <RefreshCw size={16} /> {t.condominiumDetail.checkAll}
             </button>
           )}
           <button type="button" className="btn btn--primary" onClick={() => setForm({ mode: 'create' })}>
-            <Plus size={16} /> Novo equipamento
+            <Plus size={16} /> {t.condominiumDetail.newEquipment}
           </button>
         </div>
       </header>
@@ -165,10 +187,10 @@ export function CondominiumDetailPage() {
           <div className="empty__icon">
             <Cpu size={28} />
           </div>
-          <h2 className="empty__title">Nenhum equipamento</h2>
-          <p className="empty__text">Cadastre controladores, leitores, DVRs e câmeras deste condomínio.</p>
+          <h2 className="empty__title">{t.condominiumDetail.noEquipment}</h2>
+          <p className="empty__text">{t.condominiumDetail.emptyText}</p>
           <button type="button" className="btn btn--primary" onClick={() => setForm({ mode: 'create' })}>
-            <Plus size={16} /> Adicionar equipamento
+            <Plus size={16} /> {t.condominiumDetail.addFirst}
           </button>
         </div>
       ) : (
@@ -187,7 +209,11 @@ export function CondominiumDetailPage() {
               <article key={equipment.id} className="equipment">
                 <div className="equipment__main">
                   <div className="equipment__title">
-                    <h3 className="equipment__name">{equipment.name}</h3>
+                    <h3 className="equipment__name">
+                      <Link to={`/equipamentos/${equipment.id}`} className="equipment__link">
+                        {equipment.name}
+                      </Link>
+                    </h3>
                     <StatusBadge status={state.display} title={state.result?.message} />
                   </div>
                   <p className="equipment__meta">
@@ -195,24 +221,24 @@ export function CondominiumDetailPage() {
                     {equipment.type && ` · ${equipment.type}`} · {equipment.useHttps ? 'https' : 'http'}://{equipment.host}:{equipment.port}
                   </p>
                   {state.display !== 'online' && state.display !== 'checking' && state.result && (
-                    <p className="equipment__message">{state.result.message}</p>
+                    <p className="equipment__message">{t.serverMessage(state.result.message)}</p>
                   )}
                   {details.length > 0 && <p className="equipment__details">{details.join(' · ')}</p>}
                 </div>
 
                 <div className="equipment__actions">
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => checkOne(equipment.id)} disabled={busy}>
-                    <RefreshCw size={14} className={busy ? 'spin' : undefined} /> Verificar
+                    <RefreshCw size={14} className={busy ? 'spin' : undefined} /> {t.condominiumDetail.check}
                   </button>
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => handleReboot(equipment)} disabled={busy}>
-                    <Power size={14} /> Reiniciar
+                    <Power size={14} /> {t.condominiumDetail.reboot}
                   </button>
                   <button
                     type="button"
                     className="icon-btn icon-btn--sm"
                     onClick={() => setForm({ mode: 'edit', equipment })}
-                    title="Editar"
-                    aria-label="Editar"
+                    title={t.common.edit}
+                    aria-label={t.common.edit}
                   >
                     <Pencil size={15} />
                   </button>
@@ -220,8 +246,8 @@ export function CondominiumDetailPage() {
                     type="button"
                     className="icon-btn icon-btn--sm icon-btn--danger"
                     onClick={() => handleDelete(equipment)}
-                    title="Excluir"
-                    aria-label="Excluir"
+                    title={t.common.delete}
+                    aria-label={t.common.delete}
                   >
                     <Trash2 size={15} />
                   </button>
