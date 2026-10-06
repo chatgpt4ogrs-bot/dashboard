@@ -2,7 +2,6 @@ import { Layers, LogOut, PanelLeft } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { NAV_ITEMS } from '../../config/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { useConfirm } from '../../context/ConfirmContext';
 import { useI18n } from '../../i18n';
 import { LanguageSelector } from '../ui/LanguageSelector';
 
@@ -15,12 +14,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, mobileOpen, onToggle, onNavigate }: SidebarProps) {
   const { user, logout } = useAuth();
-  const confirm = useConfirm();
   const { t } = useI18n();
-
-  const handleLogout = async () => {
-    if (await confirm({ title: t.nav.logout, message: t.nav.logoutConfirm, confirmLabel: t.nav.logout, tone: 'primary' })) logout();
-  };
 
   const classes = ['sidebar', collapsed && 'sidebar--collapsed', mobileOpen && 'sidebar--open'].filter(Boolean).join(' ');
 
@@ -73,7 +67,7 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onNavigate }: Sidebar
             <button
               type="button"
               className="icon-btn icon-btn--sm sidebar__logout"
-              onClick={handleLogout}
+              onClick={logout}
               title={t.nav.logout}
               aria-label={t.nav.logout}
             >

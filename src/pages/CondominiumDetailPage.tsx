@@ -1,8 +1,9 @@
-import { ArrowLeft, Cpu, Pencil, Plus, Power, RefreshCw, Trash2 } from 'lucide-react';
+import { ArrowLeft, Cpu, ExternalLink, Pencil, Plus, Power, RefreshCw, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   DEVICE_BRANDS,
+  MANAGEMENT_SYNCS,
   type Condominium,
   type Equipment,
   type EquipmentInput,
@@ -105,6 +106,29 @@ export function CondominiumDetailPage() {
     }
   };
 
+  const handleAccess = async (equipment: Equipment) => {
+    const url = `${equipment.useHttps ? 'https' : 'http'}://${equipment.host}:${equipment.port}`;
+    let message = t.condominiumDetail.accessOpened(equipment.name);
+    let type: 'success' | 'error' = 'success';
+    if (equipment.hasPassword) {
+      try {
+        await navigator.clipboard.writeText(await equipmentApi.getPassword(equipment.id));
+        message = t.condominiumDetail.accessCopied(equipment.name, equipment.username);
+      } catch (err) {
+        message = t.equipmentForm.passwordLoadError(getErrorMessage(err));
+        type = 'error';
+      }
+    }
+    // O navegador só permite abrir a aba alguns segundos após o clique; depois disso, bloqueia como pop-up.
+    const tab = window.open(url, '_blank');
+    if (tab) tab.opener = null;
+    else {
+      message = t.condominiumDetail.accessBlocked(url);
+      type = 'error';
+    }
+    setFeedback({ type, message });
+  };
+
   const handleReboot = async (equipment: Equipment) => {
     const confirmed = await confirm({
       title: t.condominiumDetail.rebootTitle,
@@ -199,6 +223,7 @@ export function CondominiumDetailPage() {
             const state = states[equipment.id] ?? { display: 'unknown' };
             const info = state.result?.info;
             const busy = state.display === 'checking';
+            const managementSync = MANAGEMENT_SYNCS.find((m) => m.value === equipment.managementSync)?.label;
             const details = [
               state.result?.latencyMs !== undefined && state.display === 'online' ? `${state.result.latencyMs} ms` : null,
               info?.model,
@@ -219,6 +244,7 @@ export function CondominiumDetailPage() {
                   <p className="equipment__meta">
                     {brandLabel(equipment.brand)}
                     {equipment.type && ` · ${equipment.type}`} · {equipment.useHttps ? 'https' : 'http'}://{equipment.host}:{equipment.port}
+                    {managementSync && ` · ${t.equipmentForm.managementSyncBadge(managementSync)}`}
                   </p>
                   {state.display !== 'online' && state.display !== 'checking' && state.result && (
                     <p className="equipment__message">{t.serverMessage(state.result.message)}</p>
@@ -227,6 +253,14 @@ export function CondominiumDetailPage() {
                 </div>
 
                 <div className="equipment__actions">
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm"
+                    onClick={() => handleAccess(equipment)}
+                    title={t.condominiumDetail.accessHint}
+                  >
+                    <ExternalLink size={14} /> {t.condominiumDetail.access}
+                  </button>
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => checkOne(equipment.id)} disabled={busy}>
                     <RefreshCw size={14} className={busy ? 'spin' : undefined} /> {t.condominiumDetail.check}
                   </button>

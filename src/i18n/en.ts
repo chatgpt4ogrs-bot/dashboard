@@ -83,6 +83,8 @@ const SERVER_MESSAGES: Record<string, string> = {
   'Data de instalação': 'Installation date',
   'Última manutenção': 'Last maintenance',
   Responsável: 'Responsible',
+  'Sincronização de gestão': 'Management sync',
+  'Sincronização de gestão inválida.': 'Invalid management sync.',
 };
 
 /** Mensagens do servidor com partes variáveis. */
@@ -174,7 +176,6 @@ export const en: Messages = {
     collapse: 'Collapse menu',
     openMenu: 'Open menu',
     logout: 'Log out',
-    logoutConfirm: 'Do you want to log out?',
   },
 
   roles: {
@@ -341,6 +342,12 @@ export const en: Messages = {
     newEquipment: 'New equipment',
     emptyText: 'Register controllers, readers, DVRs and cameras for this condominium.',
     addFirst: 'Add equipment',
+    access: 'Access',
+    accessHint: "Open the equipment's web interface with the password copied",
+    accessCopied: (name, username) =>
+      `${name}: password copied${username ? ` (user: ${username})` : ''}. Paste it on the equipment's login screen.`,
+    accessOpened: (name) => `${name}: web interface opened in a new tab.`,
+    accessBlocked: (url) => `The browser blocked the new tab. Allow pop-ups or go to ${url}`,
     check: 'Check',
     reboot: 'Reboot',
     deleteTitle: 'Delete equipment',
@@ -371,6 +378,11 @@ export const en: Messages = {
     lastMaintenance: 'Last maintenance',
     responsible: 'Responsible',
     responsiblePlaceholder: 'Technician or company',
+    managementSync: 'Equipment management sync',
+    managementSyncNone: 'Not synced',
+    managementSyncOption: (system) => `${system} (read-only)`,
+    managementSyncHint: 'For reference only: indicates whether the equipment is managed through Moni or Condfy.',
+    managementSyncBadge: (system) => `Managed via ${system}`,
     nameRequired: 'Enter the equipment name.',
     hostRequired: 'Enter the IP address or domain.',
     userRequired: 'Enter the username.',

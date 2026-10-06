@@ -6,6 +6,7 @@ import type {
   DeviceBrand,
   Equipment,
   EquipmentInput,
+  ManagementSync,
 } from '../shared/condominium.ts';
 import { query, transaction } from './database.ts';
 
@@ -41,6 +42,7 @@ interface EquipmentRow {
   installed_at: string | null;
   last_maintenance_at: string | null;
   responsible: string | null;
+  management_sync: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -78,6 +80,7 @@ function toEquipmentRecord(row: EquipmentRow): EquipmentRecord {
     installedAt: opt(row.installed_at),
     lastMaintenanceAt: opt(row.last_maintenance_at),
     responsible: opt(row.responsible),
+    managementSync: (row.management_sync as ManagementSync | null) ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -90,14 +93,14 @@ export function toPublicEquipment({ password, ...rest }: EquipmentRecord): Equip
 /** Valores das colunas editáveis, na ordem de EQUIPMENT_COLUMNS. */
 const EQUIPMENT_COLUMNS = [
   'name', 'brand', 'type', 'host', 'port', 'use_https', 'username', 'notes',
-  'model', 'firmware', 'serial', 'mac', 'installed_at', 'last_maintenance_at', 'responsible',
+  'model', 'firmware', 'serial', 'mac', 'installed_at', 'last_maintenance_at', 'responsible', 'management_sync',
 ] as const;
 
 function equipmentValues(input: Omit<EquipmentInput, 'password'>): unknown[] {
   return [
     input.name, input.brand, input.type ?? null, input.host, input.port, input.useHttps, input.username, input.notes ?? null,
     input.model ?? null, input.firmware ?? null, input.serial ?? null, input.mac ?? null,
-    input.installedAt ?? null, input.lastMaintenanceAt ?? null, input.responsible ?? null,
+    input.installedAt ?? null, input.lastMaintenanceAt ?? null, input.responsible ?? null, input.managementSync ?? null,
   ];
 }
 

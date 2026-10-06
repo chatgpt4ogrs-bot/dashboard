@@ -44,6 +44,7 @@ const FIELD_LABELS: Record<keyof Omit<EquipmentInput, 'password'>, string> = {
   installedAt: 'Data de instalação',
   lastMaintenanceAt: 'Última manutenção',
   responsible: 'Responsável',
+  managementSync: 'Sincronização de gestão',
 };
 
 function changedEquipmentFields(before: EquipmentRecord, after: EquipmentRecord): string[] {

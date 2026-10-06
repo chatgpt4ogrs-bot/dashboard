@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS equipments (
   updated_at          timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS equipments_condominium_id_idx ON equipments (condominium_id);
+ALTER TABLE equipments ADD COLUMN IF NOT EXISTS management_sync text;
 
 -- Sem chave estrangeira: o histórico permanece após a exclusão do equipamento.
 CREATE TABLE IF NOT EXISTS equipment_events (

@@ -1,6 +1,13 @@
 import { Check, Copy, Eye, EyeOff } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
-import { DEVICE_BRANDS, type DeviceBrand, type Equipment, type EquipmentInput } from '../../../shared/condominium';
+import {
+  DEVICE_BRANDS,
+  MANAGEMENT_SYNCS,
+  type DeviceBrand,
+  type Equipment,
+  type EquipmentInput,
+  type ManagementSync,
+} from '../../../shared/condominium';
 import { useI18n } from '../../i18n';
 import { equipmentApi, getErrorMessage } from '../../services/api';
 import { Modal } from '../ui/Modal';
@@ -32,6 +39,7 @@ export function EquipmentFormModal({ equipment, onClose, onSubmit }: EquipmentFo
   const [installedAt, setInstalledAt] = useState(equipment?.installedAt ?? '');
   const [lastMaintenanceAt, setLastMaintenanceAt] = useState(equipment?.lastMaintenanceAt ?? '');
   const [responsible, setResponsible] = useState(equipment?.responsible ?? '');
+  const [managementSync, setManagementSync] = useState<ManagementSync | ''>(equipment?.managementSync ?? '');
   const [hasAssetInfo] = useState(() =>
     Boolean(equipment && [equipment.model, equipment.firmware, equipment.serial, equipment.mac, equipment.installedAt, equipment.lastMaintenanceAt, equipment.responsible].some(Boolean)),
   );
@@ -96,6 +104,7 @@ export function EquipmentFormModal({ equipment, onClose, onSubmit }: EquipmentFo
         installedAt: installedAt || undefined,
         lastMaintenanceAt: lastMaintenanceAt || undefined,
         responsible: responsible.trim() || undefined,
+        managementSync: managementSync || undefined,
       });
     } catch (err) {
       setError(getErrorMessage(err));
@@ -146,6 +155,23 @@ export function EquipmentFormModal({ equipment, onClose, onSubmit }: EquipmentFo
               </datalist>
             </label>
           </div>
+
+          <label className="field">
+            <span className="field__label">{t.equipmentForm.managementSync}</span>
+            <select
+              className="input"
+              value={managementSync}
+              onChange={(e) => setManagementSync(e.target.value as ManagementSync | '')}
+            >
+              <option value="">{t.equipmentForm.managementSyncNone}</option>
+              {MANAGEMENT_SYNCS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {t.equipmentForm.managementSyncOption(m.label)}
+                </option>
+              ))}
+            </select>
+            <span className="field__hint">{t.equipmentForm.managementSyncHint}</span>
+          </label>
 
           <div className="field-row field-row--host">
             <label className="field">

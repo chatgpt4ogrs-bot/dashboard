@@ -1,4 +1,11 @@
-import { DEVICE_BRANDS, type CondominiumInput, type DeviceBrand, type EquipmentInput } from '../shared/condominium.ts';
+import {
+  DEVICE_BRANDS,
+  MANAGEMENT_SYNCS,
+  type CondominiumInput,
+  type DeviceBrand,
+  type EquipmentInput,
+  type ManagementSync,
+} from '../shared/condominium.ts';
 
 export class ValidationError extends Error {}
 
@@ -47,6 +54,13 @@ function optionalMac(body: Body): string | undefined {
   return hex.toUpperCase().match(/../g)!.join(':');
 }
 
+function optionalManagementSync(body: Body): ManagementSync | undefined {
+  const value = body.managementSync;
+  if (value === undefined || value === null || value === '') return undefined;
+  if (!MANAGEMENT_SYNCS.some((m) => m.value === value)) throw new ValidationError('Sincronização de gestão inválida.');
+  return value as ManagementSync;
+}
+
 export function parseEquipmentInput(raw: unknown, { requirePassword }: { requirePassword: boolean }): EquipmentInput {
   const body = asBody(raw);
 
@@ -80,5 +94,6 @@ export function parseEquipmentInput(raw: unknown, { requirePassword }: { require
     installedAt: optionalDate(body, 'installedAt', 'Data de instalação'),
     lastMaintenanceAt: optionalDate(body, 'lastMaintenanceAt', 'Data da última manutenção'),
     responsible: optionalText(body, 'responsible', 150),
+    managementSync: optionalManagementSync(body),
   };
 }

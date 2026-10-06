@@ -1,7 +1,7 @@
 import { ArrowLeft, ExternalLink, Pencil, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { DEVICE_BRANDS, type EquipmentInput } from '../../shared/condominium';
+import { DEVICE_BRANDS, MANAGEMENT_SYNCS, type EquipmentInput } from '../../shared/condominium';
 import type { EquipmentDetails } from '../../shared/equipment';
 import { EquipmentFormModal } from '../components/condominium/EquipmentFormModal';
 import { StatusBadge } from '../components/condominium/StatusBadge';
@@ -99,6 +99,7 @@ export function EquipmentDetailPage() {
 
   const { equipment, condominium, monitor, stats24h } = details;
   const detected = monitor?.detected ?? undefined;
+  const managementSyncLabel = MANAGEMENT_SYNCS.find((m) => m.value === equipment.managementSync)?.label;
   const url = `${equipment.useHttps ? 'https' : 'http'}://${equipment.host}${equipment.port === (equipment.useHttps ? 443 : 80) ? '' : `:${equipment.port}`}`;
   const now = Date.now();
   const uptimeIsPartial = monitor?.onlineSince && monitor.onlineSince === monitor.trackedSince;
@@ -137,6 +138,10 @@ export function EquipmentDetailPage() {
             <InfoRow label={t.common.condominium} value={<Link to={`/condominios/${condominium.id}`}>{condominium.name}</Link>} />
             <InfoRow label={t.equipmentDetail.type} value={equipment.type} />
             <InfoRow label={t.equipmentDetail.brand} value={DEVICE_BRANDS.find((b) => b.value === equipment.brand)?.label ?? equipment.brand} />
+            <InfoRow
+              label={t.equipmentForm.managementSync}
+              value={managementSyncLabel && t.equipmentForm.managementSyncOption(managementSyncLabel)}
+            />
             <InfoRow label={t.equipmentForm.model} {...withDetected(equipment.model, detected?.model)} />
             <InfoRow
               label="IP/URL"

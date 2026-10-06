@@ -7,6 +7,14 @@ export const DEVICE_BRANDS: { value: DeviceBrand; label: string }[] = [
   { value: 'hikvision', label: 'Hikvision' },
 ];
 
+/** Sistema de gestão que sincroniza o equipamento. Apenas informativo: não altera o comportamento do sistema. */
+export type ManagementSync = 'moni' | 'condfy';
+
+export const MANAGEMENT_SYNCS: { value: ManagementSync; label: string }[] = [
+  { value: 'moni', label: 'Moni' },
+  { value: 'condfy', label: 'Condfy' },
+];
+
 export interface Condominium {
   id: string;
   name: string;
@@ -32,6 +40,7 @@ export interface EquipmentAssetInfo {
   installedAt?: string;
   lastMaintenanceAt?: string;
   responsible?: string;
+  managementSync?: ManagementSync;
 }
 
 export interface Equipment extends EquipmentAssetInfo {

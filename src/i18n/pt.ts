@@ -62,7 +62,6 @@ export const pt = {
     collapse: 'Recolher menu',
     openMenu: 'Abrir menu',
     logout: 'Sair',
-    logoutConfirm: 'Deseja sair do sistema?',
   },
 
   roles: {
@@ -234,6 +233,12 @@ export const pt = {
     newEquipment: 'Novo equipamento',
     emptyText: 'Cadastre controladores, leitores, DVRs e câmeras deste condomínio.',
     addFirst: 'Adicionar equipamento',
+    access: 'Acessar',
+    accessHint: 'Abrir a interface web do equipamento com a senha copiada',
+    accessCopied: (name: string, username: string) =>
+      `${name}: senha copiada${username ? ` (usuário: ${username})` : ''}. Cole na tela de login do equipamento.`,
+    accessOpened: (name: string) => `${name}: interface web aberta em nova aba.`,
+    accessBlocked: (url: string) => `O navegador bloqueou a nova aba. Permita pop-ups ou acesse ${url}`,
     check: 'Verificar',
     reboot: 'Reiniciar',
     deleteTitle: 'Excluir equipamento',
@@ -264,6 +269,11 @@ export const pt = {
     lastMaintenance: 'Última manutenção',
     responsible: 'Responsável',
     responsiblePlaceholder: 'Técnico ou empresa',
+    managementSync: 'Sincronizar gestão do equipamento',
+    managementSyncNone: 'Não sincroniza',
+    managementSyncOption: (system: string) => `${system} (modo leitura)`,
+    managementSyncHint: 'Apenas para consulta: indica se a gestão do equipamento é feita pelo Moni ou pelo Condfy.',
+    managementSyncBadge: (system: string) => `Gestão via ${system}`,
     nameRequired: 'Informe o nome do equipamento.',
     hostRequired: 'Informe o endereço IP ou domínio.',
     userRequired: 'Informe o usuário.',
